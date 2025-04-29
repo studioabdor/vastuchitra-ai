@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/services/firebase';
+import { auth } from '@/config/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {

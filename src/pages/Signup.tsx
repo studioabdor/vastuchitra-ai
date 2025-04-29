@@ -1,10 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/services/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -19,7 +18,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
     
     if (!name || !email || !password || !confirmPassword) {
@@ -109,7 +108,7 @@ const Signup = () => {
           </h1>
         </Link>
         
-        <Card className="border-goldAccent/20">
+        <div className="border-goldAccent/20">
           <CardHeader>
             <CardTitle className="text-2xl font-playfair text-indigo text-center">Create an Account</CardTitle>
             <CardDescription className="text-center">Start bringing your architectural vision to life</CardDescription>
@@ -123,7 +122,7 @@ const Signup = () => {
                   type="text"
                   placeholder="John Doe"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                   required
                 />
               </div>
@@ -134,7 +133,7 @@ const Signup = () => {
                   type="email"
                   placeholder="you@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -145,7 +144,7 @@ const Signup = () => {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                   required
                 />
                 <p className="text-xs text-charcoal/60">Must be at least 6 characters</p>
@@ -157,7 +156,7 @@ const Signup = () => {
                   type="password"
                   placeholder="••••••••"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
                   required
                 />
               </div>
@@ -178,7 +177,7 @@ const Signup = () => {
               </p>
             </CardFooter>
           </form>
-        </Card>
+        </div>
       </div>
     </div>
   );
