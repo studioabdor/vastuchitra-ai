@@ -45,42 +45,42 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-white to-cream/50 relative">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-white to-cream/30 relative">
       {/* Traditional ornamental patterns */}
       <div className="absolute top-0 left-0 w-full h-4 bg-repeat-x" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='8' viewBox='0 0 40 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H40L32 4L40 8H0L8 4L0 0Z' fill='%23C45240' fill-opacity='0.1'/%3E%3C/svg%3E")`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='8' viewBox='0 0 40 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H40L32 4L40 8H0L8 4L0 0Z' fill='%23C45240' fill-opacity='0.07'/%3E%3C/svg%3E")`,
         backgroundSize: '40px 8px'
       }}></div>
       
       <div className="container mx-auto px-4">
         <div className="text-center mb-16 relative">
-          <h2 className="text-3xl md:text-4xl font-bold font-playfair mb-4 text-indigo relative inline-block">
-            Sacred <span className="text-terracotta">Design</span> Principles
-            <div className="absolute -bottom-3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-goldAccent/50 to-transparent"></div>
+          <h2 className="text-3xl md:text-4xl font-bold font-playfair mb-4 text-indigo/90 relative inline-block">
+            Sacred <span className="text-terracotta/80">Design</span> Principles
+            <div className="absolute -bottom-3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-goldAccent/30 to-transparent"></div>
           </h2>
-          <p className="text-lg text-charcoal/70 max-w-2xl mx-auto">
+          <p className="text-lg text-charcoal/60 max-w-2xl mx-auto">
             Our AI-powered platform honors traditional Indian architectural principles while offering multiple ways to visualize your concepts.
           </p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
-            <Card key={index} className="border-goldAccent/20 hover:border-goldAccent/40 hover:shadow-md transition-all duration-300">
+            <Card key={index} className="border-goldAccent/10 hover:border-goldAccent/20 hover:shadow-sm transition-all duration-300 bg-white/80">
               <div className="absolute top-0 right-0">
                 <div className="border-t-[40px] border-t-terracotta/5 border-l-[40px] border-l-transparent"></div>
               </div>
               
               <CardContent className="pt-6 relative z-10">
-                <div className="h-16 w-16 rounded-full bg-cream flex items-center justify-center text-indigo mb-6 relative">
+                <div className="h-16 w-16 rounded-full bg-cream/70 flex items-center justify-center text-indigo/80 mb-6 relative">
                   {feature.icon}
-                  <div className="absolute -inset-1 border border-goldAccent/30 rounded-full opacity-50"></div>
+                  <div className="absolute -inset-1 border border-goldAccent/20 rounded-full opacity-30"></div>
                 </div>
                 
-                <h3 className="text-xl font-bold font-playfair mb-3 text-indigo">{feature.title}</h3>
-                <p className="text-charcoal/70">{feature.description}</p>
+                <h3 className="text-xl font-bold font-playfair mb-3 text-indigo/90">{feature.title}</h3>
+                <p className="text-charcoal/60">{feature.description}</p>
                 
                 {/* Traditional decorative element */}
-                <div className="absolute bottom-2 right-2 w-8 h-8 opacity-10">
+                <div className="absolute bottom-2 right-2 w-8 h-8 opacity-5">
                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="#D4AF37"/>
                   </svg>
@@ -93,7 +93,7 @@ const FeaturesSection = () => {
       
       {/* Traditional ornamental patterns */}
       <div className="absolute bottom-0 left-0 w-full h-4 bg-repeat-x" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='8' viewBox='0 0 40 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 8H40L32 4L40 0H0L8 4L0 8Z' fill='%23C45240' fill-opacity='0.1'/%3E%3C/svg%3E")`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='8' viewBox='0 0 40 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 8H40L32 4L40 0H0L8 4L0 8Z' fill='%23C45240' fill-opacity='0.07'/%3E%3C/svg%3E")`,
         backgroundSize: '40px 8px'
       }}></div>
     </section>

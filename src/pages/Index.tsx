@@ -9,11 +9,13 @@ import StylesSection from '@/components/StylesSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import CtaSection from '@/components/CtaSection';
 import VisualizeSection from '@/components/VisualizeSection';
+import Toolbar from '@/components/Toolbar';
 
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <Toolbar />
       <main className="flex-grow">
         <HeroSection />
         <VisualizeSection />

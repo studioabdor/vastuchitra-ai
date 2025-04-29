@@ -53,13 +53,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Custom colors
-				terracotta: "#C45240",
-				indigo: "#483475",
-				goldAccent: "#D4AF37",
-				turquoise: "#30BFBF",
-				cream: "#F9F4E8",
-				charcoal: "#333333",
+				// Custom colors - now more muted
+				terracotta: "#BC8A80",
+				indigo: "#626285",
+				goldAccent: "#D9C098",
+				turquoise: "#94B0B0",
+				cream: "#F7F3EC",
+				charcoal: "#545454",
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
