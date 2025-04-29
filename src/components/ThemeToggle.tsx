@@ -15,9 +15,9 @@ export function ThemeToggle() {
       title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     >
       {theme === "dark" ? (
-        <Sun className="h-5 w-5 text-goldAccent" />
+        <Sun className="h-5 w-5 text-marigold-yellow" />
       ) : (
-        <Moon className="h-5 w-5 text-indigo" />
+        <Moon className="h-5 w-5 text-peacock-blue" />
       )}
       <span className="sr-only">Toggle theme</span>
     </Button>

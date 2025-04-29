@@ -16,7 +16,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <Toolbar />
-      <main className="flex-grow">
+      <main className="flex-grow ml-0 md:ml-16 transition-all duration-300">
         <HeroSection />
         <VisualizeSection />
         <FeaturesSection />

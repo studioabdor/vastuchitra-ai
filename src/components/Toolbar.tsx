@@ -11,8 +11,8 @@ const ToolbarItem = ({ icon, label }: { icon: React.ReactNode, label: string }) 
             {icon}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="right" className="bg-white/90 dark:bg-charcoal/90 border border-goldAccent/20">
-          <p className="text-xs font-medium text-charcoal/80 dark:text-cream">{label}</p>
+        <TooltipContent side="right" className="bg-white/90 dark:bg-deep-indigo/90 border border-saffron-gold/20">
+          <p className="text-xs font-medium text-deep-taupe dark:text-ivory-white">{label}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -23,8 +23,8 @@ const Toolbar = () => {
   return (
     <div className="toolbar">
       <div className="mb-3 text-center">
-        <div className="w-4 h-4 mx-auto rounded-full bg-gradient-to-br from-goldAccent/30 to-terracotta/30 mb-1"></div>
-        <div className="w-6 h-1 mx-auto bg-goldAccent/20 rounded-full"></div>
+        <div className="w-4 h-4 mx-auto rounded-full bg-gradient-to-br from-saffron-gold/30 to-sindoor-red/30 mb-1"></div>
+        <div className="w-6 h-1 mx-auto bg-saffron-gold/20 rounded-full"></div>
       </div>
       
       <ToolbarItem 
@@ -93,8 +93,8 @@ const Toolbar = () => {
       />
       
       <div className="mt-3 text-center">
-        <div className="w-6 h-1 mx-auto bg-goldAccent/20 rounded-full mb-1"></div>
-        <div className="w-4 h-4 mx-auto rounded-full bg-gradient-to-br from-terracotta/30 to-goldAccent/30"></div>
+        <div className="w-6 h-1 mx-auto bg-saffron-gold/20 rounded-full mb-1"></div>
+        <div className="w-4 h-4 mx-auto rounded-full bg-gradient-to-br from-sindoor-red/30 to-saffron-gold/30"></div>
       </div>
     </div>
   );

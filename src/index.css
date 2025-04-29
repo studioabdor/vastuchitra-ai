@@ -7,65 +7,89 @@
 
 @layer base {
   :root {
-    --background: 41 20% 97%;
-    --foreground: 20 10% 15%;
+    /* Light mode */
+    --background: 36 100% 97%;
+    --foreground: 0 0% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 10% 15%;
+    --card-foreground: 0 0% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 10% 15%;
+    --popover-foreground: 0 0% 14%;
 
-    --primary: 11 30% 62%;
-    --primary-foreground: 41 20% 97%;
+    --primary: 33 100% 58%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 244 21% 45%;
-    --secondary-foreground: 41 20% 97%;
+    --secondary: 210 85% 46%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 41 10% 92%;
-    --muted-foreground: 20 5% 45%;
+    --muted: 36 40% 96%;
+    --muted-foreground: 36 20% 40%;
 
-    --accent: 180 20% 63%;
-    --accent-foreground: 41 20% 97%;
+    --accent: 44 100% 50%;
+    --accent-foreground: 0 0% 14%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 41 20% 97%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 20 10% 85%;
-    --input: 20 10% 85%;
-    --ring: 11 30% 62%;
+    --border: 36 30% 86%;
+    --input: 36 30% 86%;
+    --ring: 33 100% 58%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Custom colors - light mode */
+    --sandstone-cream: 36 100% 97%;
+    --charcoal-black: 0 0% 14%;
+    --deep-taupe: 24 29% 33%;
+    --saffron-gold: 33 100% 58%;
+    --peacock-blue: 210 85% 46%;
+    --marigold-yellow: 49 100% 50%;
+    --pale-sand: 36 40% 83%;
+    --neem-green: 122 41% 39%;
+    --sindoor-red: 0 65% 50%;
   }
 
   .dark {
-    --background: 20 10% 15%;
-    --foreground: 41 20% 97%;
+    /* Dark mode */
+    --background: 228 26% 13%;
+    --foreground: 39 53% 90%;
 
-    --card: 20 10% 10%;
-    --card-foreground: 41 20% 97%;
+    --card: 228 28% 10%;
+    --card-foreground: 39 53% 90%;
 
-    --popover: 20 10% 10%;
-    --popover-foreground: 41 20% 97%;
+    --popover: 228 28% 10%;
+    --popover-foreground: 39 53% 90%;
 
-    --primary: 11 30% 62%;
-    --primary-foreground: 41 20% 97%;
+    --primary: 33 100% 58%;
+    --primary-foreground: 39 53% 90%;
 
-    --secondary: 244 21% 45%;
-    --secondary-foreground: 41 20% 97%;
+    --secondary: 174 62% 40%;
+    --secondary-foreground: 39 53% 90%;
 
-    --muted: 20 10% 20%;
-    --muted-foreground: 41 10% 70%;
+    --muted: 228 16% 20%;
+    --muted-foreground: 39 16% 69%;
 
-    --accent: 180 20% 63%;
-    --accent-foreground: 41 20% 97%;
+    --accent: 49 100% 50%;
+    --accent-foreground: 39 53% 90%;
 
-    --destructive: 0 74.2% 50.2%;
-    --destructive-foreground: 41 20% 97%;
+    --destructive: 0 62% 67%;
+    --destructive-foreground: 39 53% 90%;
 
-    --border: 20 10% 25%;
-    --input: 20 10% 25%;
-    --ring: 11 30% 62%;
+    --border: 0 0% 27%;
+    --input: 0 0% 27%;
+    --ring: 33 100% 58%;
+
+    /* Custom colors - dark mode */
+    --deep-indigo: 228 26% 13%;
+    --ivory-white: 39 53% 90%;
+    --muted-sand: 17 16% 69%;
+    --saffron-glow: 33 100% 58%;
+    --peacock-teal: 174 62% 40%;
+    --marigold-glow: 49 100% 50%;
+    --slate-gray: 0 0% 27%;
+    --neem-green-dark: 122 40% 45%;
+    --sindoor-red-dark: 0 62% 67%;
   }
 }
 
@@ -105,19 +129,24 @@
 
 /* Toolbar specific styles */
 .toolbar {
-  @apply fixed left-0 top-1/2 transform -translate-y-1/2 bg-white/80 dark:bg-charcoal/80 backdrop-blur-sm
-         border-r border-goldAccent/10 py-6 px-2 rounded-r-lg shadow-sm z-50
+  @apply fixed left-0 top-1/2 transform -translate-y-1/2 bg-white/80 dark:bg-deep-indigo backdrop-blur-sm
+         border-r border-saffron-gold/10 py-6 px-2 rounded-r-lg shadow-sm z-30
          flex flex-col items-center gap-5 transition-all duration-300;
 }
 
 .toolbar-icon {
   @apply w-10 h-10 flex items-center justify-center rounded-md 
-         text-indigo/70 hover:bg-cream hover:text-indigo transition-all duration-200 
-         border border-transparent hover:border-goldAccent/20 cursor-pointer
-         dark:text-turquoise/70 dark:hover:bg-charcoal/50 dark:hover:text-turquoise;
+         text-peacock-blue hover:bg-pale-sand hover:text-peacock-blue transition-all duration-200 
+         border border-transparent hover:border-saffron-gold/20 cursor-pointer
+         dark:text-peacock-teal dark:hover:bg-deep-indigo/50 dark:hover:text-peacock-teal;
 }
 
 .toolbar-separator {
-  @apply w-8 h-px bg-goldAccent/10 my-1;
+  @apply w-8 h-px bg-saffron-gold/10 my-1;
+}
+
+/* Add appropriate content margin to prevent toolbar overlap */
+main {
+  @apply ml-0 md:ml-16;
 }
 

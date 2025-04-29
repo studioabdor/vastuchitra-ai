@@ -53,7 +53,29 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Custom colors - now more muted
+				// Custom colors with exact hex values
+				"sandstone-cream": "#FFF8F0",
+				"charcoal-black": "#232323",
+				"deep-taupe": "#6B4F3A",
+				"saffron-gold": "#FFA726",
+				"peacock-blue": "#1976D2",
+				"marigold-yellow": "#FFD600",
+				"pale-sand": "#E7D7C1",
+				"neem-green": "#388E3C",
+				"sindoor-red": "#D32F2F",
+				
+				// Dark mode colors
+				"deep-indigo": "#181A28",
+				"ivory-white": "#F5E8D8",
+				"muted-sand": "#BCAAA4",
+				"saffron-glow": "#FFA726",
+				"peacock-teal": "#26A69A",
+				"marigold-glow": "#FFD600",
+				"slate-gray": "#444444",
+				"neem-green-dark": "#43A047",
+				"sindoor-red-dark": "#E57373",
+				
+				// Legacy colors for backward compatibility
 				terracotta: "#BC8A80",
 				indigo: "#626285",
 				goldAccent: "#D9C098",
