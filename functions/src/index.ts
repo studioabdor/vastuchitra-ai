@@ -1,4 +1,5 @@
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
+import { config } from 'firebase-functions/v2';
 import { Storage } from '@google-cloud/storage';
 import fetch from 'node-fetch';
 import * as admin from 'firebase-admin';
@@ -10,12 +11,6 @@ admin.initializeApp();
 const storage = new Storage();
 const bucketName = process.env.STORAGE_BUCKET || admin.storage().bucket().name;
 const bucket = storage.bucket(bucketName);
-
-// Validate environment variables
-const STABILITY_API_KEY = process.env.STABILITY_API_KEY;
-if (!STABILITY_API_KEY) {
-  throw new Error('STABILITY_API_KEY environment variable is not set');
-}
 
 // Types and Interfaces
 interface StableDiffusionResponse {
@@ -101,111 +96,116 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
     timeoutSeconds: 540,
     memory: "2GiB",
   },
-  async (request) => {
-    const { auth, data } = request;
+  (request) => {
+     return (async () => {
+        const { auth, data } = request;
 
-    if (!auth) {
-      throw new HttpsError("unauthenticated", "The function must be called while authenticated.");
-    }
+        if (!auth) {
+            throw new HttpsError("unauthenticated", "The function must be called while authenticated.");
+        }
 
-    if (!data) {
-      throw new HttpsError("invalid-argument", "The function must be called with data containing the prompt.");
-    }
+        if (!data) {
+            throw new HttpsError("invalid-argument", "The function must be called with data containing the prompt.");
+        }
 
-    const { prompt, style, negativePrompt } = data;
-    const userId = auth.uid;
+        const { prompt, style, negativePrompt } = data;
+        const userId = auth.uid;
 
-    try {
-      // Validate input
-      validatePrompt(prompt);
-      await checkUserQuota(userId);
+        try {
+            // Validate input
+            validatePrompt(prompt);
 
-      // Prepare the API request
-      const apiRequest = {
-        text_prompts: [
-          {
-            text: style ? `${prompt}, ${style}` : prompt,
-            weight: 1
-          },
-          ...(negativePrompt ? [{
-            text: negativePrompt,
-            weight: -1
-          }] : [])
-        ],
-        cfg_scale: 7,
-        height: 1024,
-        width: 1024,
-        samples: 1,
-        steps: 30,
-      };
+            await checkUserQuota(userId);
 
-      // Call Stability AI API
-      const response = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${STABILITY_API_KEY}`,
-        },
-        body: JSON.stringify(apiRequest),
-      });
+            // Prepare the API request
+            const apiRequest = {
+                text_prompts: [
+                    {
+                        text: style ? `${prompt}, ${style}` : prompt,
+                        weight: 1
+                    },
+                    ...(negativePrompt ? [{
+                        text: negativePrompt,
+                        weight: -1
+                    }] : [])
+                ],
+                cfg_scale: 7,
+                height: 1024,
+                width: 1024,
+                samples: 1,
+                steps: 30,
+            };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Stability AI API error: ${errorData.message || response.statusText}`);
-      }
+            // Call Stability AI API
+            const response = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
+                method: 'POST',
+                 headers: {
+                  
+                    
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${config().stability.key}`,
+                 },
+                body: JSON.stringify(apiRequest),
+            });
 
-      const result: StableDiffusionResponse = await response.json();
-      const generatedImageBase64 = result.images[0];
-      const imageBuffer = Buffer.from(generatedImageBase64, 'base64');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Stability AI API error: ${errorData.message || response.statusText}`);
+            }
 
-      // Generate unique filename
-      const fileName = `generated/${userId}/${Date.now()}.png`;
-      const file = bucket.file(fileName);
+            const result: StableDiffusionResponse = await response.json();
+            const generatedImageBase64 = result.images[0];
+            const imageBuffer = Buffer.from(generatedImageBase64, 'base64');
 
-      // Save image to storage
-      await file.save(imageBuffer, { 
-        metadata: { 
-          contentType: 'image/png',
-          metadata: {
-            userId,
-            prompt,
-            style,
-            generatedAt: new Date().toISOString()
-          }
-        } 
-      });
+            // Generate unique filename
+            const fileName = `generated/${userId}/${Date.now()}.png`;
+            const file = bucket.file(fileName);
 
-      // Generate signed URL with reasonable expiration
-      const [url] = await file.getSignedUrl({ 
-        action: 'read', 
-        expires: Date.now() + (URL_EXPIRATION_DAYS * 24 * 60 * 60 * 1000)
-      });
+            // Save image to storage
+            await file.save(imageBuffer, {
+                metadata: {
+                    contentType: 'image/png',
+                    metadata: {
+                        userId,
+                        prompt,
+                        style,
+                        generatedAt: new Date().toISOString()
+                    }
+                }
+            });
 
-      // Update user quota
-      await updateUserQuota(userId);
+            // Generate signed URL with reasonable expiration
+            const [url] = await file.getSignedUrl({
+                action: 'read',
+                expires: Date.now() + (URL_EXPIRATION_DAYS * 24 * 60 * 60 * 1000)
+            });
 
-      // Save generation record
-      const generationRecord: GenerateImageResponse = {
-        imageUrl: url,
-        prompt,
-        style,
-        createdAt: admin.firestore.Timestamp.now()
-      };
+            // Update user quota
+            await updateUserQuota(userId);
 
-      await admin.firestore()
-        .collection('images')
-        .add({
-          ...generationRecord,
-          userId
-        });
+            // Save generation record
+            const generationRecord: GenerateImageResponse = {
+                imageUrl: url,
+                prompt,
+                style,
+                createdAt: admin.firestore.Timestamp.now()
+            };
 
-      return generationRecord;
-    } catch (error) {
-      console.error('Image generation error:', error);
-      if (error instanceof HttpsError) {
-        throw error;
-      }
-      throw new HttpsError('internal', 'Error generating image', error);
-    }
-  }
-);
+            await admin.firestore()
+                .collection('images')
+                .add({
+                    ...generationRecord,
+                    userId
+                });
+
+            return generationRecord;
+        } catch (error) {
+            console.error('Image generation error:', error);
+
+            if (error instanceof HttpsError) {
+                throw error;
+            }
+            throw new HttpsError('internal', 'Error generating image', error);
+        }
+    })() as any;
+  } );
