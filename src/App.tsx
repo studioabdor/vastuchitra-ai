@@ -14,6 +14,7 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Gallery from "./pages/Gallery";
 import NotFound from "./pages/NotFound";
+import GenerateImage from "./pages/GenerateImage";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +32,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/gallery" element={<Gallery />} />
+            <Route path="/generate" element={<GenerateImage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
