@@ -11,8 +11,8 @@ const ToolbarItem = ({ icon, label }: { icon: React.ReactNode, label: string }) 
             {icon}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="right" className="bg-white/90 border border-goldAccent/20">
-          <p className="text-xs font-medium text-charcoal/80">{label}</p>
+        <TooltipContent side="right" className="bg-white/90 dark:bg-charcoal/90 border border-goldAccent/20">
+          <p className="text-xs font-medium text-charcoal/80 dark:text-cream">{label}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

@@ -105,7 +105,7 @@
 
 /* Toolbar specific styles */
 .toolbar {
-  @apply fixed left-0 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm
+  @apply fixed left-0 top-1/2 transform -translate-y-1/2 bg-white/80 dark:bg-charcoal/80 backdrop-blur-sm
          border-r border-goldAccent/10 py-6 px-2 rounded-r-lg shadow-sm z-50
          flex flex-col items-center gap-5 transition-all duration-300;
 }
@@ -113,7 +113,8 @@
 .toolbar-icon {
   @apply w-10 h-10 flex items-center justify-center rounded-md 
          text-indigo/70 hover:bg-cream hover:text-indigo transition-all duration-200 
-         border border-transparent hover:border-goldAccent/20 cursor-pointer;
+         border border-transparent hover:border-goldAccent/20 cursor-pointer
+         dark:text-turquoise/70 dark:hover:bg-charcoal/50 dark:hover:text-turquoise;
 }
 
 .toolbar-separator {
