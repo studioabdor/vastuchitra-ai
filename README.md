@@ -1,73 +1,124 @@
-# Welcome to your Lovable project
+# Vastu Chitra AI
 
-## Project info
+An AI-powered architectural visualization platform that generates Indian architectural images from sketches using Stable Diffusion.
 
-**URL**: https://lovable.dev/projects/bb3cda22-c9ae-40f1-b559-a06b8fb89d99
+## Features
 
-## How can I edit this code?
+- 🎨 Sketch-to-Image Generation
+- 🏗️ Indian Architectural Style Focus
+- 🌓 Light/Dark Mode
+- 🔐 Secure Authentication
+- ☁️ Serverless Architecture
+- 📱 Responsive Design
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- Frontend: React.js with TypeScript
+- Backend: Firebase
+  - Authentication
+  - Cloud Functions
+  - Firestore Database
+  - Cloud Storage
+- AI: Stable Diffusion API
+- Styling: Tailwind CSS
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/bb3cda22-c9ae-40f1-b559-a06b8fb89d99) and start prompting.
+## Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js (v18 or higher)
+- npm or yarn
+- Firebase CLI
+- Stable Diffusion API key
 
-**Use your preferred IDE**
+## Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/vastu-chitra-ai.git
+cd vastu-chitra-ai
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2. Install dependencies:
+```bash
+# Install frontend dependencies
+npm install
 
-Follow these steps:
+# Install Cloud Functions dependencies
+cd functions
+npm install
+cd ..
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. Create a `.env` file in the root directory with your Firebase configuration:
+```
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+VITE_STABILITY_API_KEY=your_stability_api_key
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+4. Set up Firebase:
+```bash
+# Login to Firebase
+firebase login
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Initialize Firebase project
+firebase init
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+## Development
+
+1. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+2. Start Firebase emulators:
+```bash
+firebase emulators:start
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Deployment
 
-**Use GitHub Codespaces**
+1. Build the frontend:
+```bash
+npm run build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. Deploy to Firebase:
+```bash
+firebase deploy
+```
 
-## What technologies are used for this project?
+## Security Rules
 
-This project is built with:
+The application includes security rules for:
+- Firestore Database
+- Cloud Storage
+- Authentication
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
+Review and customize the rules in:
+- `firestore.rules`
+- `storage.rules`
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Stable Diffusion API
+- Firebase
+- React.js
 - Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/bb3cda22-c9ae-40f1-b559-a06b8fb89d99) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
