@@ -1,41 +1,41 @@
-import { onCall } from 'firebase-functions/v2/https';
-import { SecretParam, config } from 'firebase-functions/v2';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { config } from 'firebase-functions/v2';
 import { Storage } from '@google-cloud/storage';
 import fetch from 'node-fetch';
 import * as admin from 'firebase-admin';
-
-// Initialize Firebase Admin and Replicate API
-admin.initializeApp();
 import Replicate from 'replicate';
+
+// Initialize Firebase Admin
+admin.initializeApp();
 
 // Initialize Storage
 const storage = new Storage();
 const bucketName = process.env.STORAGE_BUCKET || admin.storage().bucket().name;
 const bucket = storage.bucket(bucketName);
 
-//Replicate Secrets
-const replicateToken: SecretParam = config().replicate.token;
+// Replicate Secrets
+const replicateToken = config().replicate.token;
 const replicate = new Replicate({
-  auth: replicateToken.value(),
+  auth: process.env.REPLICATE_API_TOKEN || replicateToken.value(),
 });
-
 
 // Types and Interfaces
 interface ReplicateResponse {
-    id: string;
-    version: string;
-    urls: {
-        get: string;
-        cancel: string;
-    };
-    created_at: string;
-    completed_at: string | null;
-    status: 'starting' | 'processing' | 'succeeded' | 'failed' | 'canceled';
-    input: {
-        prompt: string;
-    };
-    output?: string[];
-};
+  id: string;
+  version: string;
+  urls: {
+    get: string;
+    cancel: string;
+  };
+  created_at: string;
+  completed_at: string | null;
+  status: 'starting' | 'processing' | 'succeeded' | 'failed' | 'canceled';
+  input: {
+    prompt: string;
+  };
+  output?: string[];
+  error?: string;
+}
 
 interface GenerateImageRequest {
   prompt: string;
@@ -60,14 +60,16 @@ interface UserQuota {
 const DAILY_GENERATION_LIMIT = 10;
 const URL_EXPIRATION_DAYS = 7;
 const MAX_PROMPT_LENGTH = 500;
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000; // 2 seconds
 
 // Helper Functions
 const validatePrompt = (prompt: string): void => {
   if (!prompt || typeof prompt !== 'string') {
-    throw new Error('invalid-argument: Prompt must be a non-empty string');
+    throw new HttpsError('invalid-argument', 'Prompt must be a non-empty string');
   }
   if (prompt.length > MAX_PROMPT_LENGTH) {
-    throw new Error(`invalid-argument: Prompt must not exceed ${MAX_PROMPT_LENGTH} characters`);
+    throw new HttpsError('invalid-argument', `Prompt must not exceed ${MAX_PROMPT_LENGTH} characters`);
   }
 };
 
@@ -99,7 +101,7 @@ const checkUserQuota = async (userId: string): Promise<void> => {
   }
 
   if (quota.usedToday >= quota.dailyLimit) {
-    throw new Error('resource-exhausted: Daily generation limit reached');
+    throw new HttpsError('resource-exhausted', 'Daily generation limit reached');
   }
 };
 
@@ -110,87 +112,130 @@ const updateUserQuota = async (userId: string): Promise<void> => {
   });
 };
 
+const waitForPrediction = async (predictionId: string, retryCount = 0): Promise<string[]> => {
+  try {
+    const prediction = await replicate.predictions.get(predictionId);
+    
+    if (prediction.status === 'succeeded' && prediction.output) {
+      return prediction.output;
+    }
+    
+    if (prediction.status === 'failed' || prediction.status === 'canceled') {
+      throw new Error(`Prediction ${prediction.status}: ${prediction.error || 'Unknown error'}`);
+    }
+    
+    if (retryCount >= MAX_RETRIES) {
+      throw new Error('Prediction timed out after maximum retries');
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+    return waitForPrediction(predictionId, retryCount + 1);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new HttpsError('internal', `Error checking prediction status: ${errorMessage}`);
+  }
+};
+
 // Main Function
 export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>(
   {
     timeoutSeconds: 540,
     memory: "2GiB",
   },
-  (request) => {
-     return (async () => {
-        const { auth, data } = request;
+  async (request) => {
+    const { auth, data } = request;
 
-        if (!auth) {
-            throw new Error("unauthenticated: The function must be called while authenticated.");
-        }
+    if (!auth) {
+      throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
 
-        if (!data) {
-            throw new Error("invalid-argument: The function must be called with data containing the prompt.");
-          }
+    if (!data) {
+      throw new HttpsError('invalid-argument', 'The function must be called with data containing the prompt.');
+    }
 
-        const { prompt, style, negativePrompt } = data;
-        const userId = auth.uid;
-        try {
-          // Validate input
-          validatePrompt(prompt);
-          await checkUserQuota(userId);
-          const replicateResponse = await replicate.predictions.create({
-            version: "db21e9ba61d9b2d02d959e98b2b3182bf09739b68c721eb1b73423b576961cb0",
-            input: { prompt: style ? `${prompt}, ${style}` : prompt, negative_prompt: negativePrompt || "", width: 1024, height: 1024 },
-          });
-          let predictionComplete = false;
-          let output: string[] | null = null;
-          while (!predictionComplete) {
-            const checkResult = await replicate.predictions.get(replicateResponse.id);
-            if (checkResult.status === "succeeded") {
-              output = checkResult.output || null;
-              predictionComplete = true;
-            } else if (checkResult.status === "failed" || checkResult.status === "canceled") {
-              throw new Error(`Replicate API error: ${checkResult.status}`);
-            } else {
-              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before checking again
-            }
-          }
-          if (!output) throw new Error('No output returned from replicate.');
-          const imageBuffer = await fetch(output[0]).then(res => res.arrayBuffer()).then(arrayBuffer => Buffer.from(arrayBuffer));
-          // Generate unique filename
-          const fileName = `generated/${userId}/${Date.now()}.png`;
-          const file = bucket.file(fileName);
-          // Save image to storage
-          await file.save(imageBuffer, {
-            metadata: {
-              contentType: 'image/png',
-              metadata: {
-                userId,
-                prompt,
-                style,
-                generatedAt: new Date().toISOString()
-              }
-            }
-          });
-          // Generate signed URL with reasonable expiration
-          const [url] = await file.getSignedUrl({
-            action: 'read',
-            expires: Date.now() + (URL_EXPIRATION_DAYS * 24 * 60 * 60 * 1000)
-          });
-          // Update user quota
-          await updateUserQuota(userId);
-          // Save generation record
-          const generationRecord: GenerateImageResponse = {
-            imageUrl: url,
+    const { prompt, style, negativePrompt } = data;
+    const userId = auth.uid;
+
+    try {
+      // Validate input
+      validatePrompt(prompt);
+      await checkUserQuota(userId);
+
+      // Create prediction
+      const prediction = await replicate.predictions.create({
+        version: "db21e9ba61d9b2d02d959e98b2b3182bf09739b68c721eb1b73423b576961cb0",
+        input: {
+          prompt: style ? `${prompt}, ${style}` : prompt,
+          negative_prompt: negativePrompt || "",
+          width: 1024,
+          height: 1024,
+          num_outputs: 1,
+          scheduler: "K_EULER",
+          num_inference_steps: 50,
+          guidance_scale: 7.5,
+        },
+      });
+
+      // Wait for prediction to complete
+      const output = await waitForPrediction(prediction.id);
+      
+      if (!output || output.length === 0) {
+        throw new HttpsError('internal', 'No output returned from Replicate');
+      }
+
+      // Download and save image
+      const imageBuffer = await fetch(output[0])
+        .then(res => res.arrayBuffer())
+        .then(arrayBuffer => Buffer.from(arrayBuffer));
+
+      const fileName = `generated/${userId}/${Date.now()}.png`;
+      const file = bucket.file(fileName);
+
+      await file.save(imageBuffer, {
+        metadata: {
+          contentType: 'image/png',
+          metadata: {
+            userId,
             prompt,
             style,
-            createdAt: admin.firestore.Timestamp.now()
-          };
-          await admin.firestore().collection('images').add({
-            ...generationRecord,
-            userId
-          });
-          return generationRecord;
-        } catch (error) {
-            console.error('Image generation error:', error);
-            
-            throw new Error('internal: Error generating image: ' + error);
+            generatedAt: new Date().toISOString()
+          }
         }
-    })() as any;
-} );
+      });
+
+      // Generate signed URL
+      const [url] = await file.getSignedUrl({
+        action: 'read',
+        expires: Date.now() + (URL_EXPIRATION_DAYS * 24 * 60 * 60 * 1000)
+      });
+
+      // Update quota and save record
+      await updateUserQuota(userId);
+
+      const generationRecord: GenerateImageResponse = {
+        imageUrl: url,
+        prompt,
+        style,
+        createdAt: admin.firestore.Timestamp.now()
+      };
+
+      await admin.firestore()
+        .collection('images')
+        .add({
+          ...generationRecord,
+          userId
+        });
+
+      return generationRecord;
+    } catch (error: unknown) {
+      console.error('Image generation error:', error);
+      
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new HttpsError('internal', `Error generating image: ${errorMessage}`);
+    }
+  }
+) as any; // Type assertion to fix the return type issue

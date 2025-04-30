@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2 } from "lucide-react";
 import ArchitecturalStyleSelector from '../components/ArchitecturalStyleSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface GenerateImageResponse {
   imageUrl: string;
@@ -23,6 +25,7 @@ const GenerateImage: React.FC = () => {
   const [negativePrompt, setNegativePrompt] = useState<string>('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const generateImageFunction = httpsCallable<
@@ -32,10 +35,12 @@ const GenerateImage: React.FC = () => {
 
   const handlePromptChange = (event: ChangeEvent<HTMLInputElement>) => {
     setPrompt(event.target.value);
+    setError(null);
   };
 
   const handleNegativePromptChange = (event: ChangeEvent<HTMLInputElement>) => {
     setNegativePrompt(event.target.value);
+    setError(null);
   };
 
   const handleStyleSelect = (selectedStyle: string, generatedPrompt: string, negativePromptText: string) => {
@@ -44,23 +49,22 @@ const GenerateImage: React.FC = () => {
       setPrompt(generatedPrompt);
     }
     setNegativePrompt(negativePromptText);
+    setError(null);
   };
 
   const handleCustomPromptChange = (customPrompt: string) => {
     setPrompt(customPrompt);
+    setError(null);
   };
 
   const handleGenerateImage = async () => {
     if (!prompt.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a prompt",
-        variant: "destructive",
-      });
+      setError("Please enter a prompt");
       return;
     }
 
     setIsLoading(true);
+    setError(null);
     setImageUrl(null);
 
     try {
@@ -77,9 +81,11 @@ const GenerateImage: React.FC = () => {
       });
     } catch (err: any) {
       console.error('Generation error:', err);
+      const errorMessage = err.message || "Failed to generate image. Please try again.";
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: err.message || "Failed to generate image. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -145,6 +151,14 @@ const GenerateImage: React.FC = () => {
 
       <Card>
         <CardContent className="pt-6">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <Button
             onClick={handleGenerateImage}
             disabled={isLoading}
