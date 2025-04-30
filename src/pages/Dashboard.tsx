@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { httpsCallable } from 'firebase/functions';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { functions } from '@/services/firebase';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,8 +31,9 @@ const Dashboard = () => {
   const [generationMethod, setGenerationMethod] = useState<string>('text');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [replicateId, setReplicateId] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [textPrompt, setTextPrompt] = useState<string>('');
+  const [textPrompt, setTextPrompt] = useState<string>('indian architecture');
   const [selectedStyle, setSelectedStyle] = useState<string>('');
   const { toast } = useToast();
 
@@ -78,50 +81,40 @@ const Dashboard = () => {
       return;
     }
 
-    // Simulate generation
     setIsGenerating(true);
-    
-    // In a real application, you would send the data to your backend API
-    // For now, we'll just simulate the generation process
-    setTimeout(() => {
-      setIsGenerating(false);
-      
-      // Use a sample image for demonstration
-      const sampleImages = [
-        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
-        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop&ixlib=rb-4.0.3",
-        "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
-        "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=2076&auto=format&fit=crop&ixlib=rb-4.0.3"
-      ];
-      
-      const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
-      setGeneratedImage(randomImage);
-      
-      toast({
-        title: "Success",
-        description: "Image generated successfully!",
+
+    // Call the Firebase Function to start image generation
+    const generateImage = httpsCallable(functions, 'generateImage');
+    generateImage({ prompt: textPrompt, style: selectedStyle })
+      .then((result) => {
+        const replicate_id = result.data as string;
+        setReplicateId(replicate_id);
+        toast({
+          title: "Generating",
+          description: "Image generation started. This might take a few minutes.",
+        });
+      })
+      .catch((error) => {
+        toast({
+          title: "Error",
+          description: "Image generation failed.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setIsGenerating(false);
       });
-    }, 3000);
+  };
+
+  useEffect(() => {
+    // Check the status of the Replicate prediction
+  }, [replicateId]);
+  const handleDownloadImage = () => {
+    if (generatedImage) {
+    }
   };
 
   const handleSaveImage = () => {
-    // In a real application, you would save the image to the user's gallery in Firebase
-    toast({
-      title: "Success",
-      description: "Image saved to your gallery",
-    });
-  };
-
-  const handleDownloadImage = () => {
-    // In a real application, you would download the image
-    if (generatedImage) {
-      const link = document.createElement('a');
-      link.href = generatedImage;
-      link.download = 'vastuchitra-generated.jpg';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
   };
 
   return (
@@ -197,7 +190,7 @@ const Dashboard = () => {
         </Card>
         
         {/* Generated Image Section */}
-        {generatedImage && (
+        {replicateId && (
           <div className="bg-white p-6 rounded-lg border border-goldAccent/20 shadow-sm">
             <h2 className="text-xl font-bold font-playfair mb-4 text-indigo">Generated Image</h2>
             
@@ -231,5 +224,4 @@ const Dashboard = () => {
     </DashboardLayout>
   );
 };
-
 export default Dashboard;
