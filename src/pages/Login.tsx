@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/config/firebase';
+import { signInWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
+import { auth, db } from '@/config/firebase';
+import { useAuth } from '@/context/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
@@ -13,6 +15,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signInWithGoogle } = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -54,6 +57,47 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+  
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const userCredential = await signInWithGoogle();
+      const user = userCredential.user;
+
+      // Check if user already exists in Firestore
+      const docRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        // New user, add to Firestore
+        const { displayName, email } = user;
+        await setDoc(docRef, {
+          name: displayName,
+          email: email,
+          createdAt: new Date(),
+          tier: 'free',
+          generationsLeft: 10,
+          imagesCount: 0,
+        });
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Logged in with Google successfully!',
+      });
+
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to log in with Google',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-cream p-4">
@@ -115,6 +159,13 @@ const Login = () => {
                 <Link to="/signup" className="text-indigo hover:underline">
                   Sign up
                 </Link>
+              </p>
+              <p className="text-center w-full">
+                <Button
+                  variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
+                  {isLoading ? 'Signing in with Google...' : 'Sign in with Google'}
+                </Button>
+
               </p>
             </CardFooter>
           </form>

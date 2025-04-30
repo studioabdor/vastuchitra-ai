@@ -1,25 +1,28 @@
 
-import React, { useState, ChangeEvent, FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth, db } from '@/services/firebase';
-import { doc, setDoc } from 'firebase/firestore';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, ChangeEvent, FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth, db } from "@/services/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const Signup = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signInWithGoogle } = useAuth()
 
   const handleSignup = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); 
     
     if (!name || !email || !password || !confirmPassword) {
       toast({
@@ -52,7 +55,7 @@ const Signup = () => {
     
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const user = userCredential.user; 
       
       // Update profile with name
       await updateProfile(user, {
@@ -61,13 +64,13 @@ const Signup = () => {
       
       // Create a user document in Firestore
       await setDoc(doc(db, 'users', user.uid), {
-        name,
-        email,
-        createdAt: new Date(),
-        tier: 'free',
-        generationsLeft: 10,
-        imagesCount: 0
-      });
+        name, 
+        email, 
+        createdAt: new Date(), 
+        tier: 'free', 
+        generationsLeft: 10, 
+        imagesCount: 0 
+      }); 
       
       toast({
         title: "Success",
@@ -93,6 +96,19 @@ const Signup = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      await signInWithGoogle();
+      navigate('/dashboard');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign in with Google",
+        variant: "destructive"
+      });
     }
   };
 
@@ -170,11 +186,14 @@ const Signup = () => {
                 {isLoading ? "Creating account..." : "Sign Up Free"}
               </Button>
               <p className="text-sm text-center text-charcoal/70">
-                Already have an account?{' '}
+                Already have an account?{" "}
                 <Link to="/login" className="text-indigo hover:underline">
                   Log in
                 </Link>
               </p>
+              <Button variant="outline" className="w-full" onClick={handleGoogleSignup}>
+                Sign up with Google
+              </Button>
             </CardFooter>
           </form>
         </div>

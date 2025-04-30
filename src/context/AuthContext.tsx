@@ -2,12 +2,14 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { 
   User, 
   createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
+  signInWithEmailAndPassword,
+  signOut,
   onAuthStateChanged,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { auth } from '@/config/firebase';
 
 interface AuthContextProps {
   user: User | null;
@@ -16,6 +18,7 @@ interface AuthContextProps {
   signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -61,13 +64,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await sendPasswordResetEmail(auth, email);
   };
 
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
   const value = {
     user,
     loading,
     signUp,
     signIn,
     logout,
-    resetPassword
+    resetPassword,
+    signInWithGoogle
+
   };
 
   return (
