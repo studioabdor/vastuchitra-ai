@@ -84,9 +84,10 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
     timeoutSeconds: 540,
     memory: "2GiB",
   },
-  async (request) => {
-    try {
-      const { auth, data } = request;
+   async (request) => {
+       try{
+        const { auth, data } = request;
+
       if(!auth) {
         throw new HttpsError(
             "unauthenticated",
@@ -106,9 +107,9 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
       validatePrompt(prompt);
       await checkUserQuota(userId);
       // Create prediction
-      const prediction = await replicate.predictions.create({
+      const prediction =  await replicate.predictions.create({
           version:
-          "db21e9ba61d9b2d02d959e98b2b3182bf09739b68c721eb1b73423b576961cb0",
+            "db21e9ba61d9b2d02d959e98b2b3182bf09739b68c721eb1b73423b576961cb0",
         input: {
           prompt: `${prompt}, ${style}`,
           width: 1024,
@@ -122,7 +123,7 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
       // Wait for prediction to complete
       let predictionComplete = false;
       let output: string[] | null = null;
-      while (!predictionComplete) {
+        while (!predictionComplete) {
         const checkResult = await replicate.predictions.get(prediction.id);
         if (checkResult.status === "succeeded") {
           output = checkResult.output || null;
@@ -138,22 +139,24 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
         } else {
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-      }
+        }
       if (!output) throw new HttpsError("internal", "No output returned from Replicate");
-        // Download and save image
+            // Download and save image
         const imageBuffer = await fetch(output[0])
-        .then(res => res.arrayBuffer()) 
+        .then(res => res.arrayBuffer())
         .then(arrayBuffer => Buffer.from(arrayBuffer));
 
-    const fileName = `generated/${userId}/${Date.now()}.png`;
-    const file = bucket.file(fileName); await file.save(imageBuffer, {
-      metadata: {
-        contentType: 'image/png',
-        metadata: {
-          userId,
+        const fileName = `generated/${userId}/${Date.now()}.png`
+    const file = bucket.file(fileName);
+     const resultSave =file.save(await imageBuffer, {
+      metadata:  {
+        contentType: "image/png",
+          metadata: {
+            userId,
             prompt,
-           style,
-          generatedAt: new Date().toISOString()
+            style,
+            generatedAt: new Date().toISOString(),
+          },
         }
       }
     });
@@ -162,12 +165,11 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
         action: 'read',
           expires: Date.now() + URL_EXPIRATION_DAYS * 24 * 60 * 60 * 1000,
       });
-      await admin.firestore().collection('userQuotas').doc(userId).update({ usedToday: FieldValue.increment(1) });
-      
-      
-      return { url: url, prompt: prompt, style: style, createdAt: admin.firestore.Timestamp.now() };
-    } catch (error: any) {
-      throw new HttpsError('internal', 'Error generating image: ' + (error?.message || error));
+       admin.firestore().collection('userQuotas').doc(userId).update({ usedToday: FieldValue.increment(1) });
+      const finalUrl = url[0]
+      return { url: finalUrl, prompt: prompt, style: style, createdAt: admin.firestore.Timestamp.now() };
+       }catch (error: any) {
+        throw new HttpsError('internal', 'Error generating image: ' + (error.message || error));
     }
   }
 );

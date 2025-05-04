@@ -110,27 +110,32 @@ exports.generateImage = (0, https_1.onCall)({
             .then(arrayBuffer => buffer_1.Buffer.from(arrayBuffer));
         const fileName = `generated/${userId}/${Date.now()}.png`;
         const file = bucket.file(fileName);
-        await file.save(imageBuffer, {
+        const resultSave = file.save(await imageBuffer, {
             metadata: {
-                contentType: 'image/png',
+                contentType: "image/png",
                 metadata: {
                     userId,
                     prompt,
                     style,
-                    generatedAt: new Date().toISOString()
-                }
+                    generatedAt: new Date().toISOString(),
+                },
             }
         });
-        // Generate signed URL
-        const [url] = await file.getSignedUrl({
-            action: 'read',
-            expires: Date.now() + URL_EXPIRATION_DAYS * 24 * 60 * 60 * 1000,
-        });
-        await admin.firestore().collection('userQuotas').doc(userId).update({ usedToday: firestore_1.FieldValue.increment(1) });
-        return { url: url, prompt: prompt, style: style, createdAt: admin.firestore.Timestamp.now() };
     }
-    catch (error) {
-        throw new https_1.HttpsError('internal', 'Error generating image: ' + error.message);
-    }
+    finally // Generate signed URL
+     { }
 });
+// Generate signed URL
+const [url] = await file.getSignedUrl({
+    action: 'read',
+    expires: Date.now() + URL_EXPIRATION_DAYS * 24 * 60 * 60 * 1000,
+});
+admin.firestore().collection('userQuotas').doc(userId).update({ usedToday: firestore_1.FieldValue.increment(1) });
+const finalUrl = url[0];
+return { url: finalUrl, prompt: prompt, style: style, createdAt: admin.firestore.Timestamp.now() };
+try { }
+catch (error) {
+    throw new https_1.HttpsError('internal', 'Error generating image: ' + (error.message || error));
+}
+;
 //# sourceMappingURL=index.js.map
