@@ -20,11 +20,14 @@ const VisualizeSection = () => {
   const [selectedStyle, setSelectedStyle] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
     setIsGenerating(true);
     setGeneratedImage(null);
+    setError(null);
+
     try {
       if (!textPrompt) {
         toast({
@@ -32,39 +35,55 @@ const VisualizeSection = () => {
           description: "Please enter a text description",
           variant: "destructive",
         });
-        setIsGenerating(false);
         return;
       }
+
       if (!selectedStyle) {
         toast({
           title: "Error",
           description: "Please select an architectural style",
           variant: "destructive",
         });
-        setIsGenerating(false);
         return;
       }
+
+      console.log('Sending request to backend:', { prompt: textPrompt, style: selectedStyle });
+
       const response = await fetch(`${getBackendUrl()}/generate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: textPrompt, style: selectedStyle })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          prompt: textPrompt, 
+          style: selectedStyle 
+        })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate image');
+      }
+
       const data = await response.json();
+      console.log('Received response:', data);
+
       if (data.url) {
         setGeneratedImage(data.url);
-      } else {
-        setGeneratedImage(null);
         toast({
-          title: "Error",
-          description: "No image generated. Try again.",
-          variant: "destructive",
+          title: "Success",
+          description: "Image generated successfully!",
         });
+      } else {
+        throw new Error('No image URL in response');
       }
     } catch (error) {
-      setGeneratedImage(null);
+      console.error('Error generating image:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate image');
       toast({
         title: "Error",
-        description: "Error generating image: " + error,
+        description: error instanceof Error ? error.message : 'Failed to generate image',
         variant: "destructive",
       });
     } finally {
@@ -174,24 +193,27 @@ const VisualizeSection = () => {
                     </Select>
                   </div>
 
-                  <Button
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="w-full mt-6 bg-terracotta hover:bg-terracotta/90 relative overflow-hidden group"
-                  >
-                    <span className={`transition-all duration-300 ${isGenerating ? 'opacity-0' : 'opacity-100'}`}>
-                      Generate Visualization
-                    </span>
-                    {isGenerating && (
-                      <span className="absolute inset-0 flex items-center justify-center">
-                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                      </span>
+                  <div className="mt-6">
+                    <Button
+                      onClick={handleGenerate}
+                      disabled={isGenerating}
+                      className="w-full"
+                    >
+                      {isGenerating ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Generating...
+                        </div>
+                      ) : (
+                        'Generate Image'
+                      )}
+                    </Button>
+                    {error && (
+                      <div className="mt-2 text-red-500 text-sm">
+                        {error}
+                      </div>
                     )}
-                    <div className="absolute inset-x-0 bottom-0 h-1 bg-goldAccent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-                  </Button>
+                  </div>
                 </Tabs>
 
                 <div className="mt-6 text-center">
