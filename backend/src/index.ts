@@ -63,20 +63,25 @@ app.post('/generate', async (req: Request, res: Response) => {
     console.log('Sending request to Replicate with input:', input);
 
     try {
-      const output = await replicate.run(
+      const replicateOutput = await replicate.run(
         "davisbrown/designer-architecture:0d6f0893b05f14500ce03e45f54290cbffb907d14db49699f2823d0fd35def46",
         { input }
-      ) as string[];
+      ) 
 
-      console.log('Replicate response:', output);
+      console.log('Replicate response:', replicateOutput);
 
-      if (!output || !output[0]) {
+      if (!Array.isArray(replicateOutput) || replicateOutput.length === 0) {
         throw new Error('No image URL returned from Replicate');
       }
+      
+      const imageUrl = replicateOutput[0];
+      
+      console.log('imageUrl:', imageUrl)
 
-      console.log('Image generated successfully:', output[0]);
-      res.json({ url: output[0] });
+      console.log('Image generated successfully:', imageUrl);
+      res.json({ url: imageUrl });
     } catch (apiError) {
+      console.log("apiError:",apiError)
       console.error('Replicate API error:', apiError);
       throw apiError;
     }
