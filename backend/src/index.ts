@@ -26,25 +26,56 @@ const replicate = new Replicate({
 app.post('/generate', async (req: Request, res: Response) => {
   try {
     const { prompt, style } = req.body;
+    
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required.' });
     }
+
+    if (!process.env.REPLICATE_API_TOKEN) {
+      return res.status(500).json({ error: 'Replicate API token is not configured.' });
+    }
+
+    console.log('Generating image with prompt:', prompt, 'and style:', style);
+
+    // Construct the full prompt with style if provided
+    const fullPrompt = style 
+      ? `${prompt}, ${style} architectural style, professional architectural visualization, high quality, detailed`
+      : `${prompt}, professional architectural visualization, high quality, detailed`;
+
     const input = {
-      prompt: `${prompt}${style ? ', style: ' + style : ''}`,
+      prompt: fullPrompt,
       num_outputs: 1,
       aspect_ratio: "16:9",
-      guidance_scale: 3.5,
-      output_quality: 100
+      guidance_scale: 7.5,
+      output_quality: 100,
+      negative_prompt: "blurry, low quality, distorted, unrealistic, amateur, cartoon, painting, sketch"
     };
+
+    console.log('Sending request to Replicate with input:', input);
+
     const output = await replicate.run(
       "davisbrown/designer-architecture:0d6f0893b05f14500ce03e45f54290cbffb907d14db49699f2823d0fd35def46",
       { input }
     ) as string[];
+
+    if (!output || !output[0]) {
+      throw new Error('No image URL returned from Replicate');
+    }
+
+    console.log('Image generated successfully:', output[0]);
     res.json({ url: output[0] });
   } catch (err: unknown) {
+    console.error('Error generating image:', err);
     const error = err as Error;
-    res.status(500).json({ error: error.message || 'Unknown error' });
+    res.status(500).json({ 
+      error: error.message || 'Failed to generate image. Please try again.' 
+    });
   }
+});
+
+// Health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok' });
 });
 
 const PORT = process.env.PORT || 5001;
