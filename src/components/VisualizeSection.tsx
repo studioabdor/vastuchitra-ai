@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { httpsCallable, getFunctions } from 'firebase/functions';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -8,9 +7,12 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Label } from './ui/label';
 import { Download, Eye, Palette } from 'lucide-react';
-import { Link } from 'react-router-dom'; // Import Link
-import { app } from '@/services/firebase';
+import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+
+const getBackendUrl = () => {
+  return process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+};
 
 const VisualizeSection = () => {
   const [generationMethod, setGenerationMethod] = useState('text');
@@ -23,7 +25,6 @@ const VisualizeSection = () => {
   const handleGenerate = async () => {
     setIsGenerating(true);
     setGeneratedImage(null);
-
     try {
       if (!textPrompt) {
         toast({
@@ -31,36 +32,40 @@ const VisualizeSection = () => {
           description: "Please enter a text description",
           variant: "destructive",
         });
+        setIsGenerating(false);
         return;
       }
-
       if (!selectedStyle) {
         toast({
           title: "Error",
           description: "Please select an architectural style",
           variant: "destructive",
         });
+        setIsGenerating(false);
         return;
       }
-
-      const generateImage = httpsCallable(getFunctions(app), 'generateImage');
-      const result = await generateImage({ prompt: textPrompt, style: selectedStyle });
-
-        const imageUrl = result.data as string;
-        setGeneratedImage(imageUrl);
-
-      toast({
-        title: "Success",
-        description: "Image generated successfully.",
-        title: "Generating",
-        description: "Image generation started. This might take a few minutes.",
+      const response = await fetch(`${getBackendUrl()}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: textPrompt, style: selectedStyle })
       });
+      const data = await response.json();
+      if (data.images && data.images.length > 0) {
+        setGeneratedImage(data.images[0]);
+      } else {
+        setGeneratedImage(null);
+        toast({
+          title: "Error",
+          description: "No image generated. Try again.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
+      setGeneratedImage(null);
       toast({
         title: "Error",
-        description: "Image generation failed.",
+        description: "Error generating image: " + error,
         variant: "destructive",
-
       });
     } finally {
       setIsGenerating(false);
@@ -189,7 +194,7 @@ const VisualizeSection = () => {
                   </Button>
                 </Tabs>
 
-                <div className="mt-6 text-center"> // Added a closing div tag
+                <div className="mt-6 text-center">
                   <Link to="/signup" className="text-indigo/80 hover:text-indigo text-sm">
                     Sign up for full access to all architectural styles and features
                   </Link>
