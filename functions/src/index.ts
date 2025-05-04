@@ -1,9 +1,10 @@
+const Replicate = require('replicate');
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { Storage } from '@google-cloud/storage';
 import fetch from 'node-fetch';
 import * as admin from 'firebase-admin';
-import Replicate from 'replicate';
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue } from 'firebase-admin/firestore';
+
 import { Buffer } from 'buffer';
 
 // Initialize Firebase Admin and Replicate API
@@ -91,33 +92,33 @@ const updateUserQuota = async (userId: string): Promise<void> => {
 };
 
 // Main Function
-export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>({
+export const generateImage = onCall<GenerateImageRequest, unknown>({
   timeoutSeconds: 540,
   memory: "2GiB",
-}, async (request) => {
+}, async (request): Promise<GenerateImageResponse> => {
   try {
     const { auth, data } = request;
-    
+
     if (!auth) {
       throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
-    
+
     if (!data) {
       throw new HttpsError('invalid-argument', 'The function must be called with data containing the prompt.');
     }
-    
+
     const { prompt, style, negativePrompt } = data;
-    const userId = auth.uid;
+        const userId = auth.uid;
     
-    // Validate input
-    validatePrompt(prompt);
-    await checkUserQuota(userId);
+        // Validate input
+        validatePrompt(prompt);
+        await checkUserQuota(userId);
     
-    // Create prediction
+        // Create prediction
     const prediction = await replicate.predictions.create({
-      version: "db21e9ba61d9b2d02d959e98b2b3182bf09739b68c721eb1b73423b576961cb0",
+      version: 'db21e9ba61d9b2d02d959e98b2b3182bf09739b68c721eb1b73423b576961cb0',
       input: {
-        prompt: style ? `${prompt}, ${style}` : prompt,
+        prompt: style ? `${prompt}, ${style}` : prompt ,
         negative_prompt: negativePrompt || "",
         width: 1024,
         height: 1024,
@@ -127,7 +128,7 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
         guidance_scale: 7.5,
       },
     });
-    
+        
     // Wait for prediction to complete
     let predictionComplete = false;
     let output: string[] | null = null;
@@ -144,9 +145,11 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
     }
 
     if (!output) throw new HttpsError('internal', 'No output returned from Replicate');
-    
-    // Download and save image
-    const imageBuffer = await fetch(output[0]).then(res => res.arrayBuffer()).then(arrayBuffer => Buffer.from(arrayBuffer));
+        
+        // Download and save image
+        const imageBuffer = await fetch(output[0])
+        .then(res => res.arrayBuffer())
+        .then(arrayBuffer => Buffer.from(arrayBuffer));
 
     const fileName = `generated/${userId}/${Date.now()}.png`;
     const file = bucket.file(fileName);
@@ -182,4 +185,4 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
     console.error('Error generating image:', error);
     throw new HttpsError('internal', 'Error generating image: ' + error.message);
   }
-});
+})
