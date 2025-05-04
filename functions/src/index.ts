@@ -165,11 +165,10 @@ export const generateImage = onCall<GenerateImageRequest, GenerateImageResponse>
         action: 'read',
           expires: Date.now() + URL_EXPIRATION_DAYS * 24 * 60 * 60 * 1000,
       });
-       admin.firestore().collection('userQuotas').doc(userId).update({ usedToday: FieldValue.increment(1) });
-      const finalUrl = url[0]
-      return { url: finalUrl, prompt: prompt, style: style, createdAt: admin.firestore.Timestamp.now() };
+       await admin.firestore().collection('userQuotas').doc(userId).update({ usedToday: FieldValue.increment(1) });
+      return { url: url[0], prompt: prompt, style: style, createdAt: admin.firestore.Timestamp.now() };
        }catch (error: any) {
-        throw new HttpsError('internal', 'Error generating image: ' + (error.message || error));
+        throw new HttpsError('internal', 'Error generating image: ' + (error?.message || error));
     }
   }
 );
