@@ -7,6 +7,7 @@ dotenv.config();
 
 const app = express();
 
+// Configure CORS to allow requests from your frontend
 const allowedOrigins = [
   'https://vastu-architect-ai.web.app',
   'http://localhost:3000'
@@ -49,4 +50,4 @@ app.post('/generate', async (req: Request, res: Response) => {
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Replicate backend running on port ${PORT}`);
-});
+}); 
