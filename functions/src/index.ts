@@ -4,7 +4,22 @@ import fetch from "node-fetch";
 import { Buffer } from "buffer";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
+const cors = require('cors');
+const express = require('express');
+const app = express();
 
+// Allow only your frontend domain in production
+const allowedOrigins = [
+  'https://vastu-architect-ai.web.app', // your Firebase Hosting URL
+  'http://localhost:3000' // for local development
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true // if you ever use cookies/auth
+}));
+
+app.use(express.json());
 
 const Replicate = require("replicate");
 
