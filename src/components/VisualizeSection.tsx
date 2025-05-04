@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const getBackendUrl = () => {
-  return process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+  return import.meta.env.VITE_RAILWAY_BACKEND_URL || 'http://localhost:5001';
 };
 
 const VisualizeSection = () => {
@@ -50,8 +50,8 @@ const VisualizeSection = () => {
         body: JSON.stringify({ prompt: textPrompt, style: selectedStyle })
       });
       const data = await response.json();
-      if (data.images && data.images.length > 0) {
-        setGeneratedImage(data.images[0]);
+      if (data.url) {
+        setGeneratedImage(data.url);
       } else {
         setGeneratedImage(null);
         toast({
