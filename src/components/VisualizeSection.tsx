@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { httpsCallable, getFunctions } from 'firebase/functions';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -18,7 +18,6 @@ const VisualizeSection = () => {
   const [textPrompt, setTextPrompt] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [replicateId, setReplicateId] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState('');
   const { toast } = useToast();
 
