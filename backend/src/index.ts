@@ -39,7 +39,7 @@ app.post('/generate', async (req: Request, res: Response) => {
     const output = await replicate.run(
       "davisbrown/designer-architecture:0d6f0893b05f14500ce03e45f54290cbffb907d14db49699f2823d0fd35def46",
       { input }
-    );
+    ) as string[];
     res.json({ url: output[0] });
   } catch (err: unknown) {
     const error = err as Error;
