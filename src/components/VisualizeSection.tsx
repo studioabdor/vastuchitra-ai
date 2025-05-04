@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { httpsCallable, getFunctions } from 'firebase/functions';
 import { Button } from './ui/button';
